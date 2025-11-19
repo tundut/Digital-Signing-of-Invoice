@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tạo Chứng thư số • Cyber</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/glass.css') }}">
+        <style>
+            pre { max-height: 200px; overflow-y: auto; font-size: 0.75em; }
+            .nav-quiet.nav-strong{ gap:1rem; }
+            .nav-quiet.nav-strong a{ font-weight:700; text-decoration:underline; color: var(--text); }
+            .nav-quiet.nav-strong a:hover{ background: rgba(255,255,255,0.08); }
+        </style>
+</head>
+
+<body class="glass p-4">
+<div id="transition-overlay"></div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-3">
+                <span class="accent-icon"><i class="bi bi-key"></i></span>
+                <h4 class="title-quiet mt-2 mb-1">Tạo Chứng thư số (PFX) DEMO</h4>
+            </div>
+            
+            <div class="panel-glass p-4">
+                <form id="pfxForm">
+                    <h5 class="mb-3">Thông tin Chứng chỉ (Subject)</h5>
+                    <div class="row">
+                        <div class="mb-3 col-md-6">
+                            <label class="form-label">Tên Chung (Common Name - CN)</label>
+                            <input type="text" name="common_name" class="form-control" value="demo.vn" required>
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label class="form-label">Tổ chức (Organization)</label>
+                            <input type="text" name="organization" class="form-control" value="Demo Tech Co." required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="mb-4 col-md-6">
+                            <label class="form-label">Mã Quốc gia (Country Code - C)</label>
+                            <input type="text" name="country" class="form-control" value="VN" required>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-3">Thông tin File PFX</h5>
+                    <div class="row">
+                         <div class="mb-3 col-md-6">
+                            <label class="form-label">Mật khẩu PFX</label>
+                            <input type="password" name="password" class="form-control" value="123456" id="pfxPassword" required>
+                        </div>
+                        <div class="mb-4 col-md-6">
+                            <label class="form-label">Tên File (Không cần .pfx)</label>
+                            <input type="text" name="filename" class="form-control" value="my_test_cert" id="pfxFilename" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center mt-2">
+                        <button type="submit" class="btn-glass btn-primary-glass" id="generateButton">Tạo Dữ liệu & Xem trước</button>
+                    </div>
+                    <div class="text-center nav-quiet nav-strong mt-3">
+                        <a href="/">Trang chủ</a>
+                        <a href="{{ url_for('list_invoices') }}">Danh sách đã ký</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="confirmModalLabel">Xác nhận Thông tin Chứng chỉ</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <div id="modalContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-success" id="downloadButton">
+            <i class="bi bi-download"></i> Xác nhận & Tải về PFX
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('pfxForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const generateButton = document.getElementById('generateButton');
+    
+    generateButton.disabled = true;
+    generateButton.textContent = 'Đang tạo dữ liệu...';
+
+    // 1. Fetch data PFX từ server (server chỉ tạo dữ liệu, chưa lưu file)
+    fetch('/generate_pfx_route', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            displayConfirmationModal(data);
+        } else {
+            alert('Lỗi tạo dữ liệu PFX: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Lỗi kết nối hoặc xử lý server: ' + error);
+    })
+    .finally(() => {
+        generateButton.disabled = false;
+        generateButton.textContent = 'Tạo Dữ liệu & Xem trước';
+    });
+});
+
+function displayConfirmationModal(data) {
+    const contentDiv = document.getElementById('modalContent');
+    contentDiv.innerHTML = `
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i> **Xác nhận:** Vui lòng kiểm tra lại thông tin và lưu Khóa riêng của bạn. File chưa được lưu vào ổ đĩa.
+        </div>
+
+        <h5>Thông tin đã điền</h5>
+        <p><b>CN:</b> ${data.cn} | <b>Org:</b> ${data.org}</p>
+        <p><b>Mật khẩu PFX:</b> <span class="text-danger fw-bold">${data.pfx_password}</span></p>
+        
+        <hr/>
+        <h5>1. Chứng chỉ PEM (Public Certificate)</h5>
+        <div class="input-group mb-3">
+            <pre class="form-control p-2">${data.cert_pem}</pre>
+        </div>
+
+        <h5 class="mt-4">2. Khóa riêng (Private Key PEM)</h5>
+        
+        <div class="input-group mb-3">
+            <pre id="privateKeyDisplay" class="form-control text-danger masked-key p-2">${data.private_key_pem}</pre>
+            <button class="btn btn-outline-secondary" type="button" id="toggleKeyButton">
+                <i class="bi bi-eye-slash"></i>
+            </button>
+        </div>
+    `;
+
+    // Ẩn/hiện nút Download và gán sự kiện
+    const downloadButton = document.getElementById('downloadButton');
+    downloadButton.onclick = () => initiateDownload(data.pfx_data);
+    
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+
+    function displayConfirmationModal(data) {
+    // ... (Code tạo contentDiv.innerHTML) ...
+
+    // Khởi tạo Modal và thêm sự kiện Toggle Key
+    const modalElement = document.getElementById('confirmModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // ⭐️ GỌI HÀM KÍCH HOẠT TOGGLE SAU KHI MODAL HIỆN
+    modalElement.addEventListener('shown.bs.modal', () => {
+        setupKeyToggle(data.private_key_pem);
+    }, { once: true }); 
+    
+    // ... (Code xử lý downloadButton.onclick) ...
+}
+
+
+function setupKeyToggle(privateKeyPem) {
+    const displayElement = document.getElementById('privateKeyDisplay');
+    const toggleButton = document.getElementById('toggleKeyButton');
+    
+    // TẠO CHUỖI MẶT NẠ (chỉ hiện dòng đầu và dòng cuối)
+    const lines = privateKeyPem.trim().split('\n');
+    const maskedContent = lines[0] + '\n' + '******* [Khóa riêng đã bị che] *******' + '\n' + lines[lines.length - 1];
+
+    displayElement.textContent = maskedContent; // Mặc định hiển thị masked
+    displayElement.dataset.fullKey = privateKeyPem; // Lưu khóa đầy đủ vào dataset
+    displayElement.dataset.isMasked = 'true';
+
+    toggleButton.innerHTML = '<i class="bi bi-eye-slash"></i>';
+
+    toggleButton.addEventListener('click', function() {
+        const isMasked = displayElement.dataset.isMasked === 'true';
+
+        if (isMasked) {
+            // Hiển thị khóa
+            displayElement.textContent = displayElement.dataset.fullKey;
+            displayElement.dataset.isMasked = 'false';
+            toggleButton.innerHTML = '<i class="bi bi-eye"></i>';
+        } else {
+            // Che khóa
+            displayElement.textContent = maskedContent;
+            displayElement.dataset.isMasked = 'true';
+            toggleButton.innerHTML = '<i class="bi bi-eye-slash"></i>';
+        }
+    });
+}
+}
+
+function initiateDownload(pfxBase64Data) {
+    const filename = document.getElementById('pfxFilename').value || 'certificate';
+    
+    // 1. Tạo FormData để gửi Base64 PFX data đến route download
+    const formData = new FormData();
+    formData.append('pfx_data', pfxBase64Data);
+    formData.append('filename', filename);
+
+    // 2. Tải file
+    // Ta dùng Fetch/Ajax nhưng xử lý response thủ công để kích hoạt tải xuống
+    fetch('/download_pfx', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        // Tạo blob từ response để kích hoạt tải file
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename + '.pfx';
+        document.body.appendChild(a);
+        a.click(); // Kích hoạt tải xuống
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        
+        // Đóng modal sau khi tải xong
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        if (modal) modal.hide();
+        
+        alert(`File ${filename}.pfx đã được tải xuống!`);
+    })
+    .catch(error => {
+        alert('Lỗi tải file: ' + error);
+    });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Danh sách hóa đơn • Cyber</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/glass.css') }}">
+</head>
+
+<body class="glass p-4">
+
+<div class="container">
+    <div class="panel-glass p-4">
+    <h4 class="mb-3 title-quiet">📂 Danh sách hóa đơn đã ký</h4>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th style="width: 25%">ID hóa đơn</th>
+                <th style="width: 20%">Tên Chứng chỉ (CN)</th>
+                <th style="width: 15%">Hạn dùng</th>
+                <th style="width: 10%" class="text-center">Trạng thái Ký</th>
+                <th style="width: 10%" class="text-center">Trạng thái Xác thực</th>
+                <th style="width: 10%" class="text-center">Hành động</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for id, inv in invoices.items() %}
+            <tr>
+                <td class="text-break small">{{ id }}</td>
+                
+                <td class="small">{{ inv.common_name or 'N/A' }}</td>
+                
+                <td class="small">{{ inv.valid_to or 'N/A' }}</td>
+                
+                <td class="text-center">
+                    {% if inv.status == "valid" %}
+                        <span class="badge bg-success py-2">Hợp lệ</span>
+                    {% else %}
+                        <span class="badge bg-danger py-2">Không hợp lệ</span>
+                    {% endif %}
+                </td>
+
+                <td class="text-center">
+                    {% if inv.verification_status == "VERIFIED" %}
+                        <span class="badge bg-success py-2">Đã Xác thực</span>
+                    {% elif inv.verification_status == "PENDING" %}
+                        <span class="badge bg-warning text-dark py-2">Đang Chờ</span>
+                    {% else %}
+                        <span class="badge bg-danger py-2">Bị từ chối</span>
+                    {% endif %}
+                </td>
+                
+                <td class="text-center">
+                    <a href="/invoice/{{ id }}" class="btn btn-sm btn-info text-white">Chi tiết</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="/sign-invoice" class="btn btn-outline-secondary mt-2">Ký hóa đơn mới</a>
+    <a href="/" class="btn btn-outline-info mt-2 ms-2">Trang chủ</a>
+        <div id="transition-overlay"></div>
+        <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
+        <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    </div>
+</div>
+
+</body>
+</html>

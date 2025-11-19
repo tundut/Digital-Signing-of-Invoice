@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0001</InvoiceNumber>
+  <IssueDate>2025-10-25</IssueDate>
+  <Seller>
+    <Name>Công ty TNHH ABC</Name>
+    <TaxCode>0101234567</TaxCode>
+    <Address>123 Nguyễn Văn Linh, Quận 7, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Công ty CP XYZ</Name>
+    <TaxCode>0312233445</TaxCode>
+    <Address>45 Lý Thường Kiệt, Quận 10, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Dịch vụ tư vấn phần mềm</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>2000000</UnitPrice>
+      <Amount>2000000</Amount>
+    </Item>
+    <Item>
+      <Description>Hỗ trợ triển khai</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>500000</UnitPrice>
+      <Amount>500000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>2500000</TotalAmount>
+</Invoice>

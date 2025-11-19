@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0001</InvoiceNumber>
+  <IssueDate>2025-10-25</IssueDate>
+  <Seller>
+    <Name>Công ty TNHH ABC</Name>
+    <TaxCode>0101234567</TaxCode>
+    <Address>123 Nguyễn Văn Linh, Quận 7, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Công ty CP XYZ</Name>
+    <TaxCode>0312233445</TaxCode>
+    <Address>45 Lý Thường Kiệt, Quận 10, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Dịch vụ tư vấn phần mềm</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>2000000</UnitPrice>
+      <Amount>2000000</Amount>
+    </Item>
+    <Item>
+      <Description>Hỗ trợ triển khai</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>500000</UnitPrice>
+      <Amount>500000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>2500000</TotalAmount>
+
+<Signature><SignatureValue>DPlvWDkelT/gJWkjj9kVceGInhu0OYm41Wp6hCjVY1IGW7mMG2CcJzpfCnX3rLFPtM47yyH6qx7LBS1FtpnXxVQmILVniVQ2MraWpUFumtHZLYlt7VzPLtpozt3Qi9AnyRnvxTYGxV5NMmq89kK1yMfQk+fB3Eg1jgIKFFuSxXh02xEcogxToPaJUvMSFXUfL+4n69oDYpLuGRCFuvegRv7aa6ZhDxqy7Wt1QB+/Z8fiWzD+TRq6jAFU77pr4MFnJQVuWvS6NWD5/0rFm8x4C8lu6g4tnApFhTsn9FYfayO53IT9qkuTUMHmIFBlnx4uLNZdSl4VJ7JM1KMFM25cJw==</SignatureValue><X509Certificate>MIIDXjCCAkagAwIBAgIUeLEOizpKj51DL728Ga5C11dt/JwwDQYJKoZIhvcNAQELBQAwXDELMAkGA1UEBhMCVk4xFDASBgNVBAgMC0hvIENoaSBNaW5oMQwwCgYDVQQHDANIQ00xFTATBgNVBAoMDERlbW8gQ29tcGFueTESMBAGA1UEAwwJZGVtby50ZXN0MB4XDTI1MTEwNTA5NTcyNVoXDTI2MTEwNTA5NTcyNVowXDELMAkGA1UEBhMCVk4xFDASBgNVBAgMC0hvIENoaSBNaW5oMQwwCgYDVQQHDANIQ00xFTATBgNVBAoMDERlbW8gQ29tcGFueTESMBAGA1UEAwwJZGVtby50ZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA53NF2G6YVMkxXyhK8H9US6uV7YiarPLP55i7bn9oiO4oFpEp+KnAmjMjCC062cIIxCbqGbn0EON7XOOCJ5dVB9KWkeNtzxDTHUJV8IFL7Q4TkRor/3pkQML/+btKaiP/p6Aw9586lwoU/aD2aU9ZWBWPHd0q3STynq4ra0ChNYKXvypWkt0L/DDYEdYGwjXjsNJ6sCMFann8PUJp4nGFGA8p39nh7a7AoEWe53AAZCyq0TWEmWjFd5jWUb5KV5PEt7BFK+u6F3J4WP6xMH22T4qnd0+mR1e+7Z1OdHuGMY38qaZCa7vsKnX7MiKl9R7GbAakgMkSqR2Ua4QodmkCDwIDAQABoxgwFjAUBgNVHREEDTALgglkZW1vLnRlc3QwDQYJKoZIhvcNAQELBQADggEBAOXCPdfE1dZ89x0unhZxVYQSxYgDN4iA7qz9ITEAZc9aPPIPEm9MGf4tIf5iBR/WDY0BvJgiwvdGTmfkkp03W6+n5RbD3zeqePL2nIF7hUrNvBYc2VKXbV+KqXKiEvuv7+NBk7zcaac3dlM3BOuIT3WEBVffY+M83iHo9gSLoOHutmFMzue6y2jkdf6wiVSrq5COi7V/TsNXTQXzL9JNU18VuRLTLd9GucjJa4lHgck2Wo208qPXZYOj/ikNqlArhDbG++8oMVp2uGdQ6w3gqmVHJUzxmk+PId3r19HTTdb3wKYYd2ZrdfOk84adzReEkGwQV1PbRnwD5+t90JQHCnY=</X509Certificate></Signature>
+</Invoice>
