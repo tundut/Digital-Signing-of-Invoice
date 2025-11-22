@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0005</InvoiceNumber>
+  <IssueDate>2025-11-10</IssueDate>
+  <Seller>
+    <Name>Cong ty CP Phan mem Sao Mai</Name>
+    <TaxCode>0317788991</TaxCode>
+    <Address>155 Nguyen Trai, Quan 5, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Cong ty TNHH Hoang Phuc</Name>
+    <TaxCode>0202233445</TaxCode>
+    <Address>43 Vo Thi Sau, Quan 3, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Phi tu van chuyen doi so</Description>
+      <Quantity>2</Quantity>
+      <UnitPrice>1800000</UnitPrice>
+      <Amount>3600000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>3600000</TotalAmount>
+</Invoice>

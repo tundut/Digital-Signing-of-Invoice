@@ -44,9 +44,9 @@
             {% if invoice.verification_status == "PENDING" %}
                 <span class="badge bg-warning py-2"><i class="bi bi-exclamation-circle-fill"></i> Chờ xác thực</span></span>
             {% elif invoice.verification_status == "VERIFIED" %}
-                <span class="badge bg-success py-2"><i class="bi bi-check-circle-fill"></i> Đã chấp nhận</span></span>
+                <span class="badge bg-success py-2"><i class="bi bi-check-circle-fill"></i> Hợp lệ</span></span>
             {% else %}
-                <span class="badge bg-danger py-2"><i class="bi bi-x-circle-fill"></i> Bị từ chối</span></span>
+                <span class="badge bg-danger py-2"><i class="bi bi-x-circle-fill"></i> Không hợp lệ</span></span>
             {% endif %}
             </p>
             <p class="mt-2"><strong>Thông báo xác thực:</strong>
@@ -66,7 +66,6 @@
             <div class="col-md-6">
                 <p class="mb-1"><strong>Hiệu lực từ:</strong> <span>{{ invoice.valid_from or 'N/A' }}</span></p>
                 <p class="mb-1"><strong>Hiệu lực đến:</strong> <span class="text-danger fw-bold">{{ invoice.valid_to or 'N/A' }}</span></p>
-                <p class="mb-0">**(Lưu ý: Các trường Tổ chức/Quốc gia/Hiệu lực từ chỉ hiển thị nếu được lưu trữ đầy đủ trong DB)**</p>
             </div>
         </div>
     </div>

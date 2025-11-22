@@ -79,10 +79,17 @@
             <div class="alert alert-danger mt-3 small">Sau khi ký, cấu trúc file XML sẽ thay đổi. Hành động này không thể hoàn tác.</div>
             <div class="row g-2">
                 <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Public Key</label>
                     <textarea class="form-control" rows="8" id="pubkey" readonly></textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea class="form-control" rows="8" id="privatekey" readonly></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-semibold text-danger">Private Key</label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="togglePrivateKeyButton">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                    <textarea class="form-control text-danger" rows="8" id="privatekey" readonly style="filter: blur(5px);"></textarea>
                 </div>
             </div>
           </div>
@@ -127,6 +134,25 @@ document.getElementById('signForm').addEventListener('submit', function(e) {
       .finally(()=>{ previewButton.disabled=false; previewButton.textContent='Xem trước & Ký'; });
 
     finalSignButton.onclick = function(){ confirmModal.hide(); form.submit(); };
+});
+
+// Toggle Private Key blur
+document.addEventListener('shown.bs.modal', function(e) {
+    if(e.target && e.target.id === 'confirmModal') {
+        const toggleBtn = document.getElementById('togglePrivateKeyButton');
+        const privateKeyTA = document.getElementById('privatekey');
+        
+        toggleBtn.addEventListener('click', function() {
+            const isBlurred = privateKeyTA.style.filter === 'blur(5px)';
+            if(isBlurred) {
+                privateKeyTA.style.filter = 'none';
+                toggleBtn.innerHTML = '<i class="bi bi-eye"></i>';
+            } else {
+                privateKeyTA.style.filter = 'blur(5px)';
+                toggleBtn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+            }
+        });
+    }
 });
 </script>
     <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>

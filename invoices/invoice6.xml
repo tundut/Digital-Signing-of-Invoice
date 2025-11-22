@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0006</InvoiceNumber>
+  <IssueDate>2025-11-12</IssueDate>
+  <Seller>
+    <Name>Cong ty TNHH NextSoft</Name>
+    <TaxCode>0318899001</TaxCode>
+    <Address>22 Nguyen Van Troi, Quan Phu Nhuan, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Cong ty TNHH Nam Thinh</Name>
+    <TaxCode>0305566443</TaxCode>
+    <Address>09 Huynh Tan Phat, Quan 7, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Dich vu quan tri he thong</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>2500000</UnitPrice>
+      <Amount>2500000</Amount>
+    </Item>
+    <Item>
+      <Description>Phi backup du lieu</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>900000</UnitPrice>
+      <Amount>900000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>3400000</TotalAmount>
+</Invoice>

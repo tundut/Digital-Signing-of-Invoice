@@ -8,6 +8,7 @@ from cryptography.x509.oid import NameOID
 from lxml import etree
 from xhtml2pdf import pisa
 from flask import redirect, url_for, send_file
+import qrcode
 import sqlite3
 import base64
 import uuid
@@ -435,52 +436,71 @@ def download_pdf(id):
         return "Invoice not found", 404
     
     invoice = dict(invoice_row)
-        
-    # --- BỔ SUNG ĐƯỜNG DẪN FONT CHO XHTML2PDF ---
-    # 1. Định nghĩa thư mục gốc của ứng dụng (ví dụ: thư mục chứa file này)
-    #    Tùy thuộc vào framework (Flask/Django), cách lấy đường dẫn gốc có thể khác nhau.
-    basedir = os.path.abspath(os.path.dirname(__file__))
     
-    # 2. Định nghĩa đường dẫn file font tuyệt đối
-    #    Bạn cần thay đổi 'fonts' và 'DejaVuSans.ttf' sao cho khớp với cấu trúc thư mục của bạn
-    #    Sử dụng một font Unicode có hỗ trợ tiếng Việt, ví dụ: DejaVuSans.ttf
-    FONT_FOLDER = os.path.join(basedir, 'static', 'fonts') # Ví dụ: fonts nằm trong static/fonts
-    FONT_FILENAME = 'Arial.ttf' # Hoặc một font Unicode tiếng Việt khác
-    FONT_BOLD_FILENAME = 'Arial_Bold.ttf' # Nếu có
-    
-    font_uri = os.path.join(FONT_FOLDER, FONT_FILENAME)
-    font_bold_uri = os.path.join(FONT_FOLDER, FONT_BOLD_FILENAME)
-    # ----------------------------------------------------
-    
-    # Lấy nội dung XML để chuyển đổi
     try:
         with open(invoice['path'], 'rb') as f:
             signed_xml_bytes = f.read()
             xml_tree = etree.fromstring(signed_xml_bytes)
+            # Xóa block <Signature> để hiển thị nội dung XML trong PDF nếu cần
             sig_element = xml_tree.find("Signature")
             if sig_element is not None:
                 xml_tree.remove(sig_element)
-            
-        # Render template HTML
-        # 3. TRUYỀN CÁC BIẾN FONT_URI VÀO TEMPLATE
+    except Exception as e:
+        return f"Lỗi đọc file XML: {e}", 500
+
+    try:
+        # Lấy signature và chứng chỉ từ XML
+        hashed, sig_val, cert_b64 = get_hash_sig_pk(signed_xml_bytes)
+
+        # Nếu get_hash_sig_pk trả về lỗi (hashed == False) thì đặt giá trị mặc định
+        if hashed is False:
+            sig_val = sig_val or "N/A"
+            public_key_pem = "N/A"
+        else:
+            public_key_pem = "N/A"
+            if cert_b64 and isinstance(cert_b64, str):
+                try:
+                    cert_obj = x509.load_der_x509_certificate(base64.b64decode(cert_b64))
+                    public_key_pem = cert_obj.public_key().public_bytes(
+                        serialization.Encoding.PEM,
+                        serialization.PublicFormat.SubjectPublicKeyInfo
+                    ).decode('utf-8')
+                except Exception:
+                    public_key_pem = "N/A"
+
+        # Tạo payload cho QR (SignatureValue + PublicKey)
+        qr_payload = f"SignatureValue:\n{sig_val}\n\nPublicKey:\n{public_key_pem}"
+
+        # Tạo ảnh QR (yêu cầu qrcode + pillow đã cài)
+        try:
+            qr = qrcode.QRCode(box_size=4, border=2)
+            qr.add_data(qr_payload)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            qr_buf = io.BytesIO()
+            img.save(qr_buf, format="PNG")
+            qr_buf.seek(0)
+            qr_b64 = base64.b64encode(qr_buf.read()).decode('utf-8')
+            qr_data_uri = f"data:image/png;base64,{qr_b64}"
+        except Exception as e:
+            return f"Lỗi tạo QR: {e}. Hãy cài qrcode và pillow: pip install qrcode[pil]", 500
+
+        # Render HTML với qr_data_uri (phải render sau khi tạo QR)
         html_content = render_template(
             'invoice_pdf.html', 
             invoice=invoice, 
             xml_tree=xml_tree,
-            font_uri=font_uri,         # << BIẾN MỚI
-            font_bold_uri=font_bold_uri # << BIẾN MỚI
+            qr_data_uri=qr_data_uri
         )
-        
-        # Sử dụng xhtml2pdf để tạo PDF
-        pdf_buffer = convert_html_to_pdf(html_content)
 
+        # Tạo PDF
+        pdf_buffer = convert_html_to_pdf(html_content)
         if pdf_buffer is None:
             return "Lỗi tạo PDF: Kiểm tra cú pháp HTML/CSS trong invoice_pdf.html", 500
 
     except Exception as e:
-        return f"Lỗi xử lý file XML cho PDF: {e}", 500
+        return f"Lỗi xử lý tạo PDF: {e}", 500
         
-    # Trả về file PDF
     return send_file(
         path_or_file=pdf_buffer,
         mimetype='application/pdf',

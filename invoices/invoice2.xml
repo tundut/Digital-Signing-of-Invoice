@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0002</InvoiceNumber>
+  <IssueDate>2025-10-28</IssueDate>
+  <Seller>
+    <Name>Cong ty TNHH Minh Phat</Name>
+    <TaxCode>0201122334</TaxCode>
+    <Address>25 Nguyen Huu Tho, Quan 7, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Cong ty CP Anh Duong</Name>
+    <TaxCode>0315566778</TaxCode>
+    <Address>98 Tran Hung Dao, Quan 1, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Phi bao tri he thong</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>1500000</UnitPrice>
+      <Amount>1500000</Amount>
+    </Item>
+    <Item>
+      <Description>Dich vu ho tro ky thuat</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>800000</UnitPrice>
+      <Amount>800000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>2300000</TotalAmount>
+</Invoice>

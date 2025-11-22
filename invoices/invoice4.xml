@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0004</InvoiceNumber>
+  <IssueDate>2025-11-05</IssueDate>
+  <Seller>
+    <Name>Cong ty TNHH GlobalTech</Name>
+    <TaxCode>0105566889</TaxCode>
+    <Address>200 Ly Thuong Kiet, Quan 11, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Cong ty TNHH Minh Khang</Name>
+    <TaxCode>0313344556</TaxCode>
+    <Address>77 Vo Van Kiet, Quan 1, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Dich vu trien khai Cloud</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>5000000</UnitPrice>
+      <Amount>5000000</Amount>
+    </Item>
+    <Item>
+      <Description>Phi cau hinh bao mat</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>1200000</UnitPrice>
+      <Amount>1200000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>6200000</TotalAmount>
+</Invoice>

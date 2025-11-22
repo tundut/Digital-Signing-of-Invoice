@@ -2,34 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Hóa đơn PDF - {{ id }}</title>
+    <title>Invoice PDF - {{ id }}</title>
     <style>
-        /* * KHỐI CSS QUAN TRỌNG ĐÃ SỬA ĐỔI
-         * Đảm bảo font được nhúng HOẶC dùng font hệ thống 
-         */
-        {% if font_uri %}
-        /* 1. Định nghĩa font VNFont nếu đường dẫn font được cung cấp */
-        @font-face {
-            font-family: 'VNFont';
-            src: url('{{ font_uri }}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'VNFont';
-            src: url('{{ font_bold_uri or font_uri }}') format('truetype');
-            font-weight: bold;
-            font-style: normal;
-        }
-        /* Sử dụng VNFont làm font chính, sau đó đến Arial/sans-serif để dự phòng */
-        body { font-family: 'VNFont', Arial, sans-serif; margin: 50px; }
-        {% else %}
-        /* 2. Nếu font_uri không được cung cấp, dùng font hệ thống hỗ trợ tiếng Việt (Arial) */
-        /* Đây là cách khắc phục tạm thời nếu việc nhúng font bị lỗi */
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        {% endif %}
-
-        /* Các quy tắc CSS còn lại được giữ nguyên */
         .invoice-box {
             max-width: 800px;
             margin: auto;
@@ -53,36 +27,36 @@
 
 <div class="invoice-box">
     <div class="header">
-        <h1>HÓA ĐƠN ĐIỆN TỬ</h1>
-        <p>Số: {{ xml_tree.findtext("InvoiceNumber") }} | Ngày: {{ xml_tree.findtext("IssueDate") }}</p>
+        <h1>ELECTRONIC INVOICE</h1>
+        <p>No: {{ xml_tree.findtext("InvoiceNumber") }} | Date: {{ xml_tree.findtext("IssueDate") }}</p>
     </div>
 
     <div class="status-box">
-        Trạng thái xác thực: <strong>{{ invoice.verification_status }}</strong> (Tải PDF kích hoạt xác thực)
+        Verification Status: <strong>{{ invoice.verification_status }}</strong> (Downloading PDF triggers verification)
     </div>
 
     <div class="details clearfix">
         <div class="seller">
-            <strong>Bên Bán (Seller)</strong><br>
-            Tên: {{ xml_tree.findtext("Seller/Name") }}<br>
-            MST: {{ xml_tree.findtext("Seller/TaxCode") }}<br>
-            Địa chỉ: {{ xml_tree.findtext("Seller/Address") }}
+            <strong>Seller</strong><br>
+            Name: {{ xml_tree.findtext("Seller/Name") }}<br>
+            Tax Code: {{ xml_tree.findtext("Seller/TaxCode") }}<br>
+            Address: {{ xml_tree.findtext("Seller/Address") }}
         </div>
         <div class="buyer">
-            <strong>Bên Mua (Buyer)</strong><br>
-            Tên: {{ xml_tree.findtext("Buyer/Name") }}<br>
-            MST: {{ xml_tree.findtext("Buyer/TaxCode") }}<br>
-            Địa chỉ: {{ xml_tree.findtext("Buyer/Address") }}
+            <strong>Buyer</strong><br>
+            Name: {{ xml_tree.findtext("Buyer/Name") }}<br>
+            Tax Code: {{ xml_tree.findtext("Buyer/TaxCode") }}<br>
+            Address: {{ xml_tree.findtext("Buyer/Address") }}
         </div>
     </div>
 
     <table class="items">
         <thead>
             <tr class="heading">
-                <th>Mô tả</th>
-                <th style="width: 10%">SL</th>
-                <th style="width: 20%; text-align: right;">Đơn giá</th>
-                <th style="width: 20%; text-align: right;">Thành tiền</th>
+                <th>Description</th>
+                <th style="width: 10%">Qty</th>
+                <th style="width: 20%; text-align: right;">Unit Price</th>
+                <th style="width: 20%; text-align: right;">Amount</th>
             </tr>
         </thead>
         <tbody>
@@ -98,12 +72,19 @@
     </table>
 
     <div class="total">
-        Tổng cộng: <strong>{{ xml_tree.findtext("TotalAmount") }} VND</strong>
+        Total: <strong>{{ xml_tree.findtext("TotalAmount") }} VND</strong>
     </div>
     
     <div style="margin-top: 50px;">
-        Chữ ký số được xác nhận bởi hệ thống vào: {{ invoice.created_at }}<br>
-        Chứng chỉ: {{ invoice.common_name }} (Hạn: {{ invoice.valid_to }})
+        Digital signature verified at: {{ invoice.created_at }}<br>
+        Certificate: {{ invoice.common_name }} (Valid until: {{ invoice.valid_to }})
+        <!-- QR code hiển thị SignatureValue và Public Key khi quét -->
+        {% if qr_data_uri %}
+        <div>
+            <img src="{{ qr_data_uri }}" alt="QR Code" style="width:150px;height:150px;border:1px solid #ccc;" /><br>
+            Scan to view Signature & Public Key
+        </div>
+        {% endif %}
     </div>
 </div>
 

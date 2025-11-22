@@ -142,7 +142,7 @@ function displayConfirmationModal(data) {
         <h5 class="mt-4">2. Khóa riêng (Private Key PEM)</h5>
         
         <div class="input-group mb-3">
-            <pre id="privateKeyDisplay" class="form-control text-danger masked-key p-2">${data.private_key_pem}</pre>
+            <pre id="privateKeyDisplay" class="form-control text-danger masked-key p-2"></pre>
             <button class="btn btn-outline-secondary" type="button" id="toggleKeyButton">
                 <i class="bi bi-eye-slash"></i>
             </button>
@@ -153,56 +153,44 @@ function displayConfirmationModal(data) {
     const downloadButton = document.getElementById('downloadButton');
     downloadButton.onclick = () => initiateDownload(data.pfx_data);
     
-    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    modal.show();
-
-    function displayConfirmationModal(data) {
-    // ... (Code tạo contentDiv.innerHTML) ...
-
-    // Khởi tạo Modal và thêm sự kiện Toggle Key
     const modalElement = document.getElementById('confirmModal');
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
-    // ⭐️ GỌI HÀM KÍCH HOẠT TOGGLE SAU KHI MODAL HIỆN
+    // Gọi hàm setup toggle sau khi modal hiện
     modalElement.addEventListener('shown.bs.modal', () => {
         setupKeyToggle(data.private_key_pem);
-    }, { once: true }); 
-    
-    // ... (Code xử lý downloadButton.onclick) ...
+    }, { once: true });
 }
-
 
 function setupKeyToggle(privateKeyPem) {
     const displayElement = document.getElementById('privateKeyDisplay');
     const toggleButton = document.getElementById('toggleKeyButton');
     
-    // TẠO CHUỖI MẶT NẠ (chỉ hiện dòng đầu và dòng cuối)
-    const lines = privateKeyPem.trim().split('\n');
-    const maskedContent = lines[0] + '\n' + '******* [Khóa riêng đã bị che] *******' + '\n' + lines[lines.length - 1];
-
-    displayElement.textContent = maskedContent; // Mặc định hiển thị masked
-    displayElement.dataset.fullKey = privateKeyPem; // Lưu khóa đầy đủ vào dataset
+    // Lưu khóa đầy đủ vào dataset
+    displayElement.dataset.fullKey = privateKeyPem;
     displayElement.dataset.isMasked = 'true';
-
+    
+    // Hiển thị mặc định: làm mờ toàn bộ
+    displayElement.style.filter = 'blur(5px)';
+    displayElement.textContent = privateKeyPem;
     toggleButton.innerHTML = '<i class="bi bi-eye-slash"></i>';
 
     toggleButton.addEventListener('click', function() {
         const isMasked = displayElement.dataset.isMasked === 'true';
 
         if (isMasked) {
-            // Hiển thị khóa
-            displayElement.textContent = displayElement.dataset.fullKey;
+            // Hiển thị khóa rõ ràng
+            displayElement.style.filter = 'none';
             displayElement.dataset.isMasked = 'false';
             toggleButton.innerHTML = '<i class="bi bi-eye"></i>';
         } else {
-            // Che khóa
-            displayElement.textContent = maskedContent;
+            // Làm mờ khóa
+            displayElement.style.filter = 'blur(5px)';
             displayElement.dataset.isMasked = 'true';
             toggleButton.innerHTML = '<i class="bi bi-eye-slash"></i>';
         }
     });
-}
 }
 
 function initiateDownload(pfxBase64Data) {

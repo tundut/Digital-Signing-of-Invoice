@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice>
+  <InvoiceNumber>INV-0003</InvoiceNumber>
+  <IssueDate>2025-11-01</IssueDate>
+  <Seller>
+    <Name>Cong ty TNHH DigiWorld</Name>
+    <TaxCode>0319988776</TaxCode>
+    <Address>57 Dien Bien Phu, Quan Binh Thanh, TP.HCM</Address>
+  </Seller>
+  <Buyer>
+    <Name>Cong ty TM DV Sao Viet</Name>
+    <TaxCode>0301122446</TaxCode>
+    <Address>12 Pham Ngoc Thach, Quan 3, TP.HCM</Address>
+  </Buyer>
+  <Items>
+    <Item>
+      <Description>Thiet ke giao dien website</Description>
+      <Quantity>1</Quantity>
+      <UnitPrice>3500000</UnitPrice>
+      <Amount>3500000</Amount>
+    </Item>
+  </Items>
+  <TotalAmount>3500000</TotalAmount>
+</Invoice>

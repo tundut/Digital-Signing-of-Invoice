@@ -3,24 +3,24 @@
   <InvoiceNumber>INV-0001</InvoiceNumber>
   <IssueDate>2025-10-25</IssueDate>
   <Seller>
-    <Name>Công ty TNHH ABC</Name>
+    <Name>Cong ty TNHH ABC</Name>
     <TaxCode>0101234567</TaxCode>
-    <Address>123 Nguyễn Văn Linh, Quận 7, TP.HCM</Address>
+    <Address>123 Nguyen Van Linh, Quan 7, TP.HCM</Address>
   </Seller>
   <Buyer>
-    <Name>Công ty CP XYZ</Name>
+    <Name>Cong ty CP XYZ</Name>
     <TaxCode>0312233445</TaxCode>
-    <Address>45 Lý Thường Kiệt, Quận 10, TP.HCM</Address>
+    <Address>45 Ly Thuong Kiet, Quan 10, TP.HCM</Address>
   </Buyer>
   <Items>
     <Item>
-      <Description>Dịch vụ tư vấn phần mềm</Description>
+      <Description>Dich vu tu van phan mem</Description>
       <Quantity>1</Quantity>
       <UnitPrice>2000000</UnitPrice>
       <Amount>2000000</Amount>
     </Item>
     <Item>
-      <Description>Hỗ trợ triển khai</Description>
+      <Description>Ho tro trien khai</Description>
       <Quantity>1</Quantity>
       <UnitPrice>500000</UnitPrice>
       <Amount>500000</Amount>
