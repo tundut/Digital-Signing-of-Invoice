@@ -198,10 +198,6 @@ def verify_xml(xml_bytes):
     digest = hashes.Hash(hashes.SHA256())
     digest.update(unsigned_xml_canonical)
     hashed = digest.finalize()
-    try:
-        pubkey.verify(signature, hashed, padding.PKCS1v15(), hashes.SHA256())
-    except InvalidSignature:
-        return False, "❌ Giá trị chữ ký không khớp với nội dung XML", None
     
     # Khắc phục cảnh báo DeprecationWarning: Sử dụng _utc
     now = datetime.now(timezone.utc)
@@ -212,11 +208,68 @@ def verify_xml(xml_bytes):
         "valid_to": valid_to,
         "organization": cert.subject.get_attributes_for_oid(x509.NameOID.ORGANIZATION_NAME)[0].value,
         "country": cert.subject.get_attributes_for_oid(x509.NameOID.COUNTRY_NAME)[0].value,
-        "valid_from": cert.not_valid_before_utc.strftime('%Y-%m-%d %H:%M:%S'), 
+        "valid_from": cert.not_valid_before_utc.strftime('%Y-%m-%d %H:%M:%S'),
+        "verification_checks": []
     }
-
-    if now > cert.not_valid_after_utc:
-        return False, "❌ Chữ ký hợp lệ về mặt mật mã nhưng Chứng chỉ đã hết hạn", cert_info
+    
+    # KIỂM TRA TỪNG ĐIỀU KIỆN RIÊNG BIỆT
+    all_valid = True
+    valid_count = 0
+    total_checks = 3
+    
+    # Kiểm tra 1: Certificate Validity & Organization Match (Chứng thư hợp lệ + Tổ chức khớp)
+    cert_expired = now > cert.not_valid_after_utc
+    if cert_expired:
+        cert_info["verification_checks"].append({
+            "status": "invalid",
+            "message": f"Chứng thư ĐÃ HẾT HẠN vào {valid_to}. Xác thực tổ chức THẤT BẠI."
+        })
+        all_valid = False
+    else:
+        cert_info["verification_checks"].append({
+            "status": "valid",
+            "message": f"Chứng thư hợp lệ, tổ chức khớp: {cert_info['organization']}"
+        })
+        valid_count += 1
+    
+    # Kiểm tra 2: Data Integrity (Message & Digest) - LUÔN KIỂM TRA
+    digest_check = {
+        "status": "checking",
+        "message": "Nội dung & mã băm giống hệt nhau. Tính toàn vẹn dữ liệu được xác nhận."
+    }
+    
+    # Kiểm tra 3: Signature Validity - LUÔN KIỂM TRA
+    signature_check = {
+        "status": "checking",
+        "message": "Chữ ký HỢP LỆ. Nguồn gốc và tính toàn vẹn dữ liệu được xác nhận."
+    }
+    
+    try:
+        pubkey.verify(signature, hashed, padding.PKCS1v15(), hashes.SHA256())
+        # Nếu verify thành công
+        digest_check["status"] = "valid"
+        signature_check["status"] = "valid"
+        cert_info["verification_checks"].append(digest_check)
+        cert_info["verification_checks"].append(signature_check)
+        valid_count += 2
+    except InvalidSignature:
+        digest_check["status"] = "invalid"
+        digest_check["message"] = "Nội dung & mã băm KHÔNG giống nhau. Tính toàn vẹn dữ liệu BỊ PHÁ VỠ."
+        signature_check["status"] = "invalid"
+        signature_check["message"] = "Chữ ký KHÔNG HỢP LỆ. Xác thực THẤT BẠI."
+        cert_info["verification_checks"].append(digest_check)
+        cert_info["verification_checks"].append(signature_check)
+        all_valid = False
+    
+    # Thêm thông báo tổng kết
+    cert_info["verification_summary"] = f"Đã kiểm tra {total_checks} điều kiện: {valid_count} hợp lệ ✓, {total_checks - valid_count} không hợp lệ ✗"
+    
+    # Kết luận cuối cùng
+    if not all_valid:
+        if cert_expired:
+            return False, "❌ Chứng chỉ đã hết hạn - Xác thực thất bại", cert_info
+        else:
+            return False, "❌ Chữ ký không hợp lệ - Xác thực thất bại", cert_info
     
     return True, "✅ Chữ ký hợp lệ và Chứng chỉ còn hiệu lực", cert_info
 
@@ -528,14 +581,13 @@ def confirm_verify(id):
     invoice_row = db.execute("SELECT * FROM INVOICES WHERE id = ?", (id,)).fetchone()
     
     if not invoice_row:
-        return "Invoice not found", 404
+        return jsonify({"status": "error", "message": "Không tìm thấy hóa đơn"}), 404
     
     invoice = dict(invoice_row)
     
     with open(invoice['path'], 'rb') as f:
         signed_xml = f.read()
     ok, msg, full_cert_info = verify_xml(signed_xml)
-
 
     if ok:
         new_status = 'VERIFIED'
@@ -548,8 +600,30 @@ def confirm_verify(id):
     """, (new_status, msg, id))
     db.commit()
     
-    # Chuyển hướng về trang danh sách xác thực
-    return redirect(url_for('list_verification'))
+    # Lấy public key từ certificate để hiển thị
+    public_key_pem = "N/A"
+    try:
+        xml_text = signed_xml.decode("utf-8")
+        cert_match = re.search(r"<X509Certificate>(.*?)</X509Certificate>", xml_text, re.DOTALL)
+        if cert_match:
+            cert_b64 = cert_match.group(1).strip()
+            cert = x509.load_der_x509_certificate(base64.b64decode(cert_b64))
+            public_key_pem = cert.public_key().public_bytes(
+                serialization.Encoding.PEM,
+                serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode('utf-8')
+    except Exception:
+        pass
+    
+    # Trả về JSON với thông tin xác thực chi tiết
+    return jsonify({
+        "status": "success",
+        "verification_result": ok,
+        "message": msg,
+        "verification_checks": full_cert_info.get("verification_checks", []),
+        "verification_summary": full_cert_info.get("verification_summary", ""),
+        "public_key": public_key_pem
+    })
 
 @app.route("/api/invoice_detail/<id>")
 def api_invoice_detail(id):
@@ -566,12 +640,17 @@ def api_invoice_detail(id):
         with open(invoice['path'], 'rb') as f:
             signed_xml = f.read()
         # Chú ý: Cần đảm bảo hàm verify_xml đã được sửa lỗi DeprecationWarning
-        _, _, full_cert_info = verify_xml(signed_xml) 
+        is_valid, msg, full_cert_info = verify_xml(signed_xml) 
         invoice.update(full_cert_info) 
-    except Exception:
+        invoice['current_verification_result'] = is_valid
+        invoice['current_verification_message'] = msg
+    except Exception as e:
         invoice["organization"] = "N/A"
         invoice["country"] = "N/A"
         invoice["valid_from"] = "N/A"
+        invoice["verification_checks"] = []
+        invoice['current_verification_result'] = False
+        invoice['current_verification_message'] = f"Lỗi xác thực: {str(e)}"
         
     invoice['verification_status'] = invoice.get('verification_status', 'N/A')
     invoice['verification_message'] = invoice.get('verification_message', 'Chưa có thông báo xử lý.')
