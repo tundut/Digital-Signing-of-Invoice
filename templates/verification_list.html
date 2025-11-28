@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xác thực chữ ký • Cyber</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/glass.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* CSS để sửa lỗi bảng */
+        .table th:nth-child(1) { width: 18%; } /* ID */
+        .table th:nth-child(2) { width: 18%; } /* CN */
+        .table th:nth-child(3) { width: 15%; } /* Hạn dùng */
+        .table th:nth-child(4) { width: 10%; } /* Status Ký */
+        .table th:nth-child(5) { width: 12%; } /* Status Xác thực */
+        .table th:nth-child(6) { width: 10%; } /* Hành động */
+        pre { max-height: 150px; overflow-y: auto; font-size: 0.8em; }
+        /* Match generator nav style */
+        .nav-quiet.nav-strong{ gap:1rem; }
+        .nav-quiet.nav-strong a{ font-weight:700; text-decoration:underline; color: var(--text); }
+        .nav-quiet.nav-strong a:hover{ background: rgba(255,255,255,0.08); }
+        /* Modal content clarity */
+        dl.row dt{ font-weight:700; }
+        dl.row dd{ margin-bottom:.5rem; }
+        /* Stronger, non-blurry modal for verification */
+        #invoiceDetailModal .modal-content{ 
+            backdrop-filter: none !important; 
+            -webkit-backdrop-filter: none !important; 
+            background: rgba(20,22,26,0.98) !important; 
+            border: 1px solid rgba(255,255,255,0.22) !important; 
+            box-shadow: 0 18px 48px rgba(0,0,0,0.6);
+            color: #f4f6f8;
+        }
+        #invoiceDetailModal .modal-header{ border-bottom-color: rgba(255,255,255,0.18); }
+        #invoiceDetailModal .modal-footer{ border-top-color: rgba(255,255,255,0.18); }
+        /* Solid panels inside modal */
+        .panel-solid{
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: .75rem;
+        }
+    </style>
+</head>
+
+<body class="glass p-4">
+
+<div class="container">
+    <div class="text-center mb-4">
+        <h4 class="title-quiet mb-3">🛡️ Xác thực Chữ ký Hóa đơn</h4>
+    </div>
+
+    <div class="panel-glass p-3">
+            <table class="table table-hover align-middle table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 25%">ID hóa đơn</th>
+                        <th style="width: 15%">Tên Chứng chỉ (CN)</th>
+                        <th style="width: 15%">Hạn dùng</th>
+                        <th style="width: 10%" class="text-center">Trạng thái Ký</th>
+                        <th style="width: 15%" class="text-center">Trạng thái Xác thực</th>
+                        <th style="width: 10%" class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for id, inv in invoices.items() %}
+                    <tr>
+                        <td class="small">{{ id }}</td>
+                        <td class="small">{{ inv.common_name or 'N/A' }}</td>
+                        <td class="small">{{ inv.valid_to or 'N/A' }}</td>
+    <div id="transition-overlay"></div>
+                        
+                        <td class="text-center">
+                            {% if inv.status == "valid" %}
+                                <span class="badge bg-success py-2">Hợp lệ</span>
+                            {% else %}
+                                <span class="badge bg-danger py-2">Không hợp lệ</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if inv.verification_status == "VERIFIED" %}
+                                <span class="badge bg-success py-2">Hợp lệ</span>
+                            {% elif inv.verification_status == "PENDING" %}
+                                <span class="badge bg-warning text-dark py-2">Đang Chờ</span>
+                            {% else %}
+                                <span class="badge bg-danger py-2">Không hợp lệ</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-info text-white view-detail-btn" 
+                               data-id="{{ id }}">
+                                Xác thực
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% if not invoices %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Chưa có hóa đơn nào trong danh sách.</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+    </div>
+    
+    <div class="text-center nav-quiet nav-strong mt-4">
+        <a href="{{ url_for('list_invoices') }}">Danh sách đã ký</a>
+        <a href="/">Trang chủ</a>
+    </div>
+</div>
+
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h5 class="modal-title" id="invoiceDetailModalLabel">Chi tiết Hóa đơn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="modalContentContainer">
+                    <div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p>Đang tải chi tiết...</p></div>
+                </div>
+            </div>
+            
+            <div class="modal-footer d-block">
+                
+                <h5 class="mt-4 mb-3">Thao tác Xử lý</h5>
+                
+                <div id="verificationActions" class="d-flex justify-content-end gap-2">
+                    
+                    <a id="downloadPdfLink" href="#" target="_blank" class="btn btn-danger btn-lg"><i class="bi bi-file-earmark-pdf"></i> Tải PDF</a>
+                    
+                    <form id="approveForm" method="POST" class="d-inline">
+                        <input type="hidden" name="action" value="APPROVE">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Xác nhận
+                        </button>
+                    </form>
+                    
+                </div>
+                
+                <div class="mt-3 border-top pt-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+            </div>
+    </div>
+</div>
+
+<script>
+let currentInvoiceId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const modalElement = document.getElementById('invoiceDetailModal');
+    const modal = new bootstrap.Modal(modalElement);
+    const container = document.getElementById('modalContentContainer');
+    const downloadPdfLink = document.getElementById('downloadPdfLink');
+    const approveForm = document.getElementById('approveForm');
+
+    // Sự kiện mở Modal
+    document.querySelectorAll('.view-detail-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const invoiceId = this.dataset.id;
+            currentInvoiceId = invoiceId;
+            
+            // 1. Reset Modal và hiển thị loading
+            container.innerHTML = '<div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p>Đang tải chi tiết...</p></div>';
+            modal.show();
+            
+            // 2. Cập nhật Action Forms và Links
+            approveForm.action = `/confirm_verify/${invoiceId}`;
+            downloadPdfLink.href = `/download_pdf/${invoiceId}`;
+            
+            // 3. Fetch dữ liệu
+            fetch(`/api/invoice_detail/${invoiceId}`)
+                .then(response => {
+                    // Nếu không phải là JSON (do lỗi), ta chuyển thành text để xem nội dung
+                    if (!response.headers.get('content-type').includes('application/json')) {
+                        return response.text().then(text => {
+                            throw new Error("Server trả về HTML/Lỗi: " + text.substring(0, 500) + "...");
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        const inv = data.invoice;
+                        
+                        // 4. Xây dựng nội dung chi tiết
+                        let statusBadge = inv.status === 'valid' ? 
+                            '<span class="badge bg-success">Hợp lệ</span>' : 
+                            '<span class="badge bg-danger">Không hợp lệ</span>';
+                            
+                        let verificationBadge = '';
+                        let verificationNote = inv.verification_message || 'Chưa có thông báo chi tiết.';
+
+                        if (inv.verification_status === 'PENDING') {
+                            verificationBadge = '<span class="badge bg-warning text-dark">Đang Chờ Xử Lý</span>';
+                        } else if (inv.verification_status === 'VERIFIED') {
+                            verificationBadge = '<span class="badge bg-success">Đã Xác thực</span>';
+                        } else {
+                            verificationBadge = '<span class="badge bg-danger">Đã Từ chối</span>';
+                        }
+                        
+                        // 5. Chèn nội dung vào container (giao diện rõ ràng hơn)
+                        container.innerHTML = `
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="mb-0">Kết quả xác thực</h5>
+                                    ${verificationBadge}
+                                    <span class="ms-auto small text-muted">ID: <code>${inv.id}</code></span>
+                                </div>
+                                <div class="small mt-1">Trạng thái ký: ${statusBadge}</div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="panel-solid p-3 h-100">
+                                        <div class="fw-semibold mb-2">Thông báo hệ thống</div>
+                                        <div class="mb-2">${inv.message || 'Không có thông báo.'}</div>
+                                        <div class="text-muted small">Ghi chú xử lý:</div>
+                                        <div>${verificationNote}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="panel-solid p-3 h-100">
+                                        <div class="fw-semibold mb-2">Thông tin chứng thư</div>
+                                        <dl class="row mb-0">
+                                            <dt class="col-4">CN</dt><dd class="col-8">${inv.common_name || 'N/A'}</dd>
+                                            <dt class="col-4">Tổ chức</dt><dd class="col-8">${inv.organization || 'N/A'}</dd>
+                                            <dt class="col-4">Hiệu lực đến</dt><dd class="col-8"><span class="text-danger">${inv.valid_to || 'N/A'}</span></dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2">
+                                <a href="/download_xml/${inv.id}" class="btn btn-sm btn-outline-info">Tải XML đã ký</a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="reloadModalContent()">Kiểm tra lại</button>
+                            </div>
+                        `;
+
+                        // 6. Hiển thị/Ẩn các nút hành động (Chấp thuận/Từ chối)
+                        document.getElementById('verificationActions').style.display = inv.verification_status === 'PENDING' ? 'flex' : 'none';
+
+                    } else {
+                        container.innerHTML = '<div class="alert alert-danger">Lỗi: Không thể tải chi tiết hóa đơn.</div>';
+                    }
+                })
+                .catch(error => {
+                    container.innerHTML = `<div class="alert alert-danger">Lỗi kết nối hoặc xử lý dữ liệu: ${error}</div>`;
+                });
+        });
+    });
+});
+
+function reloadModalContent() {
+    if (currentInvoiceId) {
+        // Tái sử dụng logic Fetch để tải lại nội dung
+        const container = document.getElementById('modalContentContainer');
+        const downloadPdfLink = document.getElementById('downloadPdfLink'); // Ví dụ: Cần cập nhật các biến này
+
+        container.innerHTML = '<div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p>Đang kiểm tra lại chữ ký...</p></div>';
+
+        fetch(`/api/invoice_detail/${currentInvoiceId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // CẬP NHẬT: Tái tạo nội dung chi tiết
+                    // (Bạn cần sao chép logic xây dựng container.innerHTML từ phần .then() ở trên)
+                    const inv = data.invoice;
+                    
+                    // Ví dụ (bạn cần đưa logic xây dựng container.innerHTML của bạn vào đây):
+                    container.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6 border-end">
+                                <h5>📝 Trạng thái Ký số</h5>
+                                <p><strong>Kết quả Ký:</strong> ${inv.status === 'valid' ? '<span class="badge bg-success">Hợp lệ</span>' : '<span class="badge bg-danger">Không hợp lệ</span>'}</p>
+                                <p><strong>Thông báo Ký:</strong> ${inv.message}</p>
+                            </div>
+                            </div>
+                    `;
+                    
+                    // Cập nhật các forms và link (như trong hàm click ban đầu)
+                    document.getElementById('approveForm').action = `/confirm_verify/${currentInvoiceId}`;
+                    // ... các forms khác ...
+                    document.getElementById('verificationActions').style.display = inv.verification_status === 'PENDING' ? 'flex' : 'none';
+                    
+                } else {
+                    container.innerHTML = '<div class="alert alert-danger">Lỗi: Không thể kiểm tra lại.</div>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = `<div class="alert alert-danger">Lỗi kết nối khi kiểm tra lại: ${error}</div>`;
+            });
+    }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>
